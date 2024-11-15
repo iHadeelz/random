@@ -133,6 +133,12 @@
             color: #888;
             text-align: right;
         }
+
+        .comment-author {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -156,6 +162,8 @@
 
 <section>
     <h3>أضف فكرتك أو تعليقك هنا:</h3>
+    <input type="text" id="userName" placeholder="أدخل اسمك" style="padding: 10px; margin-top: 10px; width: 250px;">
+    <br>
     <textarea id="userComment" rows="4" cols="50" placeholder="أكتب هنا..."></textarea>
     <br>
     <button class="button" onclick="submitComment()">أرسل</button>
@@ -168,7 +176,9 @@
     </div>
 </section>
 
-
+<div class="footer">
+    &copy; 2024 موقع هدوء الفضاوة | تصميم وإبداع من **هدوله**
+</div>
 
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.8.1/firebase-app-compat.js"></script>
@@ -192,19 +202,24 @@ const db = firebase.firestore(); // إعداد قاعدة البيانات
 
 // دالة إرسال التعليق إلى Firestore
 function submitComment() {
+    const name = document.getElementById("userName").value;
     const comment = document.getElementById("userComment").value;
-    if (comment) {
+    if (name && comment) {
         db.collection("comments").add({
+            name: name,
             text: comment,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
             alert("تم إرسال تعليقك!");
+            document.getElementById("userName").value = '';
             document.getElementById("userComment").value = '';
             displayComments(); // تحديث العرض بعد إضافة تعليق
         }).catch((error) => {
             alert("حدث خطأ: " + error.message);
             console.error("خطأ أثناء الإرسال:", error);
         });
+    } else {
+        alert("يرجى إدخال الاسم والتعليق.");
     }
 }
 
@@ -220,6 +235,10 @@ function displayComments() {
                 const commentElement = document.createElement("div");
                 commentElement.classList.add("comment-box");
 
+                const commentAuthor = document.createElement("p");
+                commentAuthor.classList.add("comment-author");
+                commentAuthor.textContent = commentData.name;
+
                 const commentText = document.createElement("p");
                 commentText.classList.add("comment-text");
                 commentText.textContent = commentData.text;
@@ -229,6 +248,7 @@ function displayComments() {
                 const date = commentData.timestamp?.toDate().toLocaleString('ar-EG') || "توقيت غير متاح";
                 commentTimestamp.textContent = date;
 
+                commentElement.appendChild(commentAuthor);
                 commentElement.appendChild(commentText);
                 commentElement.appendChild(commentTimestamp);
                 commentsContainer.appendChild(commentElement);
